@@ -1,0 +1,2715 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+    <title>SmartFence - Forest Monitoring</title>
+
+    <link rel="stylesheet"
+          href="{{ url_for('static', filename='style.css') }}">
+
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+</head>
+
+<body>
+
+<div class="app-container">
+
+    <!-- =====================================================
+         TOP NAVBAR
+    ====================================================== -->
+
+    <nav class="navbar">
+
+        <div class="nav-brand">
+
+            <div class="nav-logo">
+                🌲
+            </div>
+
+            <div>
+                <h2>SmartFence</h2>
+                <span>Smart Forest Fence Monitoring</span>
+            </div>
+
+        </div>
+
+
+        <div class="nav-links">
+
+            <button class="active"
+                    onclick="showScreen('home', this)">
+                🏠 Home
+            </button>
+
+            <button onclick="showScreen('monitor', this)">
+                📊 Monitor
+            </button>
+
+            <button onclick="showScreen('alerts', this)">
+                🔔 Alerts
+            </button>
+
+            <button onclick="showScreen('profile', this)">
+                👤 Profile
+            </button>
+
+            <button class="logout-btn"
+                    onclick="logoutUser()">
+                🚪 Logout
+            </button>
+
+        </div>
+
+    </nav>
+
+
+    <!-- =====================================================
+         MAIN CONTENT
+    ====================================================== -->
+
+    <main class="main-content">
+
+
+        <!-- =================================================
+             HOME SCREEN
+        ================================================== -->
+
+        <section id="home"
+                 class="screen active">
+
+
+            <!-- Welcome -->
+
+            <div class="welcome-card">
+
+                <h1>
+                    Welcome back, {{ user_name }}! 👋
+                </h1>
+
+                <p>
+                    Your forest area is being monitored continuously.
+                </p>
+
+            </div>
+
+
+            <!-- =================================================
+                 FENCE STATUS
+            ================================================== -->
+
+            <div class="card"
+                 style="margin-bottom: 25px;">
+
+                <div class="section-title">
+
+                    <h2>
+                        🛡️ Fence Status
+                    </h2>
+
+                    <span id="fenceUpdated">
+                        Checking status...
+                    </span>
+
+                </div>
+
+
+                <div class="fence-control">
+
+                    <div class="fence-status">
+
+                        <div id="fenceStatusDot"
+                             class="status-dot">
+                        </div>
+
+                        <div>
+
+                            <strong id="fenceStatusText">
+                                Checking...
+                            </strong>
+
+                            <p id="fenceStatusMessage"
+                               style="color: var(--muted);
+                                      font-size: 12px;
+                                      margin-top: 4px;">
+                                Checking monitoring status
+                            </p>
+
+                        </div>
+
+                    </div>
+
+
+                    <div class="fence-buttons">
+
+                        <button class="primary-btn"
+                                onclick="turnFenceOn()">
+                            ▶ Start Monitoring
+                        </button>
+
+                        <button class="secondary-btn"
+                                onclick="turnFenceOff()">
+                            ⏹ Stop Monitoring
+                        </button>
+
+                    </div>
+
+                </div>
+
+
+                <button class="danger-btn"
+                        onclick="emergencyShutdown()">
+                    🚨 Emergency Stop
+                </button>
+
+            </div>
+
+
+            <!-- =================================================
+                 SENSOR CARDS
+            ================================================== -->
+
+            <div class="sensor-grid">
+
+
+                <!-- Fence Power -->
+
+                <div class="card sensor-card">
+
+                    <div class="sensor-icon">
+                        ⚡
+                    </div>
+
+                    <h3>
+                        Fence Power
+                    </h3>
+
+                    <div class="sensor-value"
+                         id="voltageValue">
+                        -- V
+                    </div>
+
+                    <div class="sensor-status"
+                         id="voltageStatus">
+                        Checking...
+                    </div>
+
+                </div>
+
+
+                <!-- Battery -->
+
+                <div class="card sensor-card">
+
+                    <div class="sensor-icon">
+                        🔋
+                    </div>
+
+                    <h3>
+                        Sensor Battery
+                    </h3>
+
+                    <div class="sensor-value"
+                         id="batteryValue">
+                        --%
+                    </div>
+
+                    <div class="sensor-status"
+                         id="batteryStatus">
+                        Checking...
+                    </div>
+
+                </div>
+
+
+                <!-- Wildlife -->
+
+                <div class="card sensor-card">
+
+                    <div class="sensor-icon">
+                        🐾
+                    </div>
+
+                    <h3>
+                        Wildlife Activity
+                    </h3>
+
+                    <div class="sensor-value"
+                         id="animalValue">
+                        Clear
+                    </div>
+
+                    <div class="sensor-status"
+                         id="animalStatus">
+                        No movement detected
+                    </div>
+
+                </div>
+
+
+                <!-- Overall -->
+
+                <div class="card sensor-card">
+
+                    <div class="sensor-icon">
+                        🛡️
+                    </div>
+
+                    <h3>
+                        Overall Safety
+                    </h3>
+
+                    <div class="sensor-value"
+                         id="overallValue">
+                        Good
+                    </div>
+
+                    <div class="sensor-status"
+                         id="overallStatus">
+                        Monitoring active
+                    </div>
+
+                </div>
+
+            </div>
+
+
+            <!-- =================================================
+                 CHART + SMART SAFETY CHECK
+            ================================================== -->
+
+            <div class="two-column">
+
+
+                <!-- Voltage Chart -->
+
+                <div class="card">
+
+                    <div class="section-title">
+
+                        <h2>
+                            ⚡ Fence Power
+                        </h2>
+
+                        <span>
+                            Live
+                        </span>
+
+                    </div>
+
+                    <div class="chart-container">
+
+                        <canvas id="voltageChart">
+                        </canvas>
+
+                    </div>
+
+                </div>
+
+
+                <!-- Smart Safety -->
+
+                <div class="card ai-card">
+
+                    <div class="section-title">
+
+                        <h2>
+                            🧠 Smart Safety Check
+                        </h2>
+
+                        <span>
+                            Live
+                        </span>
+
+                    </div>
+
+
+                    <div class="ai-status">
+
+                        <div class="ai-icon"
+                             id="aiIcon">
+                            🛡️
+                        </div>
+
+                        <div>
+
+                            <strong id="aiStatus">
+                                Checking...
+                            </strong>
+
+                            <span>
+                                Automatic safety check
+                            </span>
+
+                        </div>
+
+                    </div>
+
+
+                    <p class="ai-message"
+                       id="aiMessage">
+                        Checking the latest fence information...
+                    </p>
+
+                </div>
+
+            </div>
+
+
+            <!-- =================================================
+                 FOREST AREA STATUS
+            ================================================== -->
+
+            <div class="card"
+                 style="margin-bottom: 25px;">
+
+                <div class="section-title">
+
+                    <h2>
+                        🌳 Forest Area Status
+                    </h2>
+
+                    <span>
+                        Live Monitoring
+                    </span>
+
+                </div>
+
+
+                <div class="zone-grid"
+                     id="zoneGrid">
+
+                    <!-- Zones loaded by JavaScript -->
+
+                </div>
+
+            </div>
+
+
+            <!-- =================================================
+                 RECENT NOTIFICATION
+            ================================================== -->
+
+            <div class="card"
+                 style="margin-bottom: 25px;">
+
+                <div class="section-title">
+
+                    <h2>
+                        🔔 Recent Notification
+                    </h2>
+
+                    <button class="secondary-btn"
+                            onclick="showScreen('alerts', null)">
+                        View All
+                    </button>
+
+                </div>
+
+
+                <div id="recentAlert">
+
+                    <div class="empty-state">
+
+                        <div class="empty-state-icon">
+                            🌿
+                        </div>
+
+                        <h3>
+                            Everything looks good
+                        </h3>
+
+                        <p>
+                            No recent problems have been reported.
+                        </p>
+
+                    </div>
+
+                </div>
+
+            </div>
+
+
+            <!-- =================================================
+                 LAST UPDATED
+            ================================================== -->
+
+            <div style="text-align: center;
+                        color: var(--muted);
+                        font-size: 11px;
+                        margin-bottom: 15px;">
+
+                Last updated:
+                <span id="lastUpdated">
+                    Waiting for sensor data...
+                </span>
+
+            </div>
+
+
+        </section>
+
+
+        <!-- =================================================
+             MONITOR SCREEN
+        ================================================== -->
+
+        <section id="monitor"
+                 class="screen">
+
+
+            <div class="page-header">
+
+                <h1>
+                    📊 Live Monitoring
+                </h1>
+
+                <p>
+                    Keep an eye on your forest fence in real time.
+                </p>
+
+            </div>
+
+
+            <div class="card"
+                 style="margin-bottom: 20px;">
+
+                <div class="section-title">
+
+                    <h2>
+                        ⚡ Fence Power History
+                    </h2>
+
+                    <span>
+                        Live Updates
+                    </span>
+
+                </div>
+
+
+                <div class="chart-container">
+
+                    <canvas id="monitorChart">
+                    </canvas>
+
+                </div>
+
+            </div>
+
+
+            <div class="sensor-grid">
+
+
+                <div class="card sensor-card">
+
+                    <div class="sensor-icon">
+                        ⚡
+                    </div>
+
+                    <h3>
+                        Current Power
+                    </h3>
+
+                    <div class="sensor-value"
+                         id="monitorVoltage">
+                        -- V
+                    </div>
+
+                    <div class="sensor-status">
+                        Live reading
+                    </div>
+
+                </div>
+
+
+                <div class="card sensor-card">
+
+                    <div class="sensor-icon">
+                        🔋
+                    </div>
+
+                    <h3>
+                        Battery
+                    </h3>
+
+                    <div class="sensor-value"
+                         id="monitorBattery">
+                        --%
+                    </div>
+
+                    <div class="sensor-status">
+                        Sensor battery
+                    </div>
+
+                </div>
+
+
+                <div class="card sensor-card">
+
+                    <div class="sensor-icon">
+                        🐾
+                    </div>
+
+                    <h3>
+                        Wildlife
+                    </h3>
+
+                    <div class="sensor-value"
+                         id="monitorAnimal">
+                        Clear
+                    </div>
+
+                    <div class="sensor-status">
+                        Nearby activity
+                    </div>
+
+                </div>
+
+
+                <div class="card sensor-card">
+
+                    <div class="sensor-icon">
+                        📡
+                    </div>
+
+                    <h3>
+                        Connection
+                    </h3>
+
+                    <div class="sensor-value">
+                        Live
+                    </div>
+
+                    <div class="sensor-status">
+                        Monitoring active
+                    </div>
+
+                </div>
+
+            </div>
+
+
+            <div class="card">
+
+                <div class="section-title">
+
+                    <h2>
+                        📋 Monitoring History
+                    </h2>
+
+                </div>
+
+
+                <button class="secondary-btn"
+                        onclick="openHistory()">
+                    View Sensor History
+                </button>
+
+            </div>
+
+
+        </section>
+
+
+        <!-- =================================================
+             ALERTS SCREEN
+        ================================================== -->
+
+        <section id="alerts"
+                 class="screen">
+
+
+            <div class="page-header">
+
+                <h1>
+                    🔔 Notifications
+                </h1>
+
+                <p>
+                    Important updates from your forest monitoring system.
+                </p>
+
+            </div>
+
+
+            <div class="card"
+                 style="margin-bottom: 20px;">
+
+                <div class="section-title">
+
+                    <h2>
+                        Recent Notifications
+                    </h2>
+
+                    <span id="alertCount">
+                        0
+                    </span>
+
+                </div>
+
+
+                <div id="alertsList">
+
+                    <div class="empty-state">
+
+                        <div class="empty-state-icon">
+                            🌿
+                        </div>
+
+                        <h3>
+                            No notifications yet
+                        </h3>
+
+                        <p>
+                            Your forest monitoring system is running normally.
+                        </p>
+
+                    </div>
+
+                </div>
+
+            </div>
+
+
+            <div class="card">
+
+                <div class="section-title">
+
+                    <h2>
+                        📋 Monitoring History
+                    </h2>
+
+                </div>
+
+                <button class="secondary-btn"
+                        onclick="openHistory()">
+                    View Monitoring History
+                </button>
+
+            </div>
+
+
+        </section>
+
+
+        <!-- =================================================
+             PROFILE SCREEN
+        ================================================== -->
+
+        <section id="profile"
+                 class="screen">
+
+
+            <div class="page-header">
+
+                <h1>
+                    👤 My Profile
+                </h1>
+
+                <p>
+                    Your SmartFence account information.
+                </p>
+
+            </div>
+
+
+            <div class="card profile-card">
+
+                <div class="profile-avatar">
+                    🌲
+                </div>
+
+
+                <h2>
+                    {{ user_name }}
+                </h2>
+
+                <p>
+                    {{ user_email }}
+                </p>
+
+
+                <div style="
+                    margin-top: 25px;
+                    padding-top: 20px;
+                    border-top: 1px solid rgba(25,212,119,0.12);
+                    text-align: left;
+                ">
+
+                    <div style="margin-bottom: 15px;">
+
+                        <span style="
+                            color: var(--muted);
+                            font-size: 11px;
+                        ">
+                            Account Type
+                        </span>
+
+                        <strong style="
+                            display: block;
+                            color: var(--green2);
+                            margin-top: 4px;
+                        ">
+                            Forest Safety Monitor
+                        </strong>
+
+                    </div>
+
+
+                    <div style="margin-bottom: 15px;">
+
+                        <span style="
+                            color: var(--muted);
+                            font-size: 11px;
+                        ">
+                            Monitoring
+                        </span>
+
+                        <strong style="
+                            display: block;
+                            color: var(--green2);
+                            margin-top: 4px;
+                        ">
+                            Live
+                        </strong>
+
+                    </div>
+
+
+                    <div>
+
+                        <span style="
+                            color: var(--muted);
+                            font-size: 11px;
+                        ">
+                            System
+                        </span>
+
+                        <strong style="
+                            display: block;
+                            color: var(--green2);
+                            margin-top: 4px;
+                        ">
+                            SmartFence
+                        </strong>
+
+                    </div>
+
+                </div>
+
+
+                <button class="danger-btn"
+                        style="margin-top: 25px;"
+                        onclick="logoutUser()">
+                    🚪 Logout
+                </button>
+
+            </div>
+
+
+        </section>
+
+
+    </main>
+
+
+    <!-- =====================================================
+         BOTTOM NAVIGATION
+    ====================================================== -->
+
+    <div class="bottom-nav">
+
+        <button class="active"
+                onclick="showScreen('home', this)">
+            🏠
+            <br>
+            Home
+        </button>
+
+        <button onclick="showScreen('monitor', this)">
+            📊
+            <br>
+            Monitor
+        </button>
+
+        <button onclick="showScreen('alerts', this)">
+            🔔
+            <br>
+            Alerts
+        </button>
+
+        <button onclick="showScreen('profile', this)">
+            👤
+            <br>
+            Profile
+        </button>
+
+    </div>
+
+
+    <!-- =====================================================
+         SMART ALERT POPUP
+    ====================================================== -->
+
+    <div id="smartAlertPopup"
+         class="smart-alert-popup">
+
+        <div class="smart-alert-icon"
+             id="smartAlertIcon">
+            🚨
+        </div>
+
+        <div class="smart-alert-content">
+
+            <h3 id="smartAlertTitle">
+                SmartFence Alert
+            </h3>
+
+            <p id="smartAlertMessage">
+                Alert detected near the forest fence.
+            </p>
+
+            <span id="smartAlertTime">
+                Just now
+            </span>
+
+        </div>
+
+        <button class="smart-alert-close"
+                onclick="closeSmartAlert()">
+            ×
+        </button>
+
+    </div>
+
+
+</div>
+
+
+<!-- =========================================================
+     JAVASCRIPT
+========================================================= -->
+
+<script>
+
+let voltageChart;
+let monitorChart;
+
+let voltageValues = [];
+let voltageLabels = [];
+
+let lastAlertId = null;
+
+
+/* =========================================================
+   SCREEN NAVIGATION
+========================================================= */
+
+function showScreen(screenId, clickedButton = null) {
+
+    document.querySelectorAll(".screen").forEach(screen => {
+        screen.classList.remove("active");
+    });
+
+    const selectedScreen = document.getElementById(screenId);
+
+    if (selectedScreen) {
+        selectedScreen.classList.add("active");
+    }
+
+
+    document.querySelectorAll(".nav-links button").forEach(button => {
+        button.classList.remove("active");
+    });
+
+    document.querySelectorAll(".bottom-nav button").forEach(button => {
+        button.classList.remove("active");
+    });
+
+
+    if (clickedButton) {
+        clickedButton.classList.add("active");
+    }
+    else {
+
+        document.querySelectorAll(
+            `.nav-links button, .bottom-nav button`
+        ).forEach(button => {
+
+            if (
+                button.textContent
+                    .toLowerCase()
+                    .includes(screenId)
+            ) {
+                button.classList.add("active");
+            }
+
+        });
+
+    }
+
+
+    if (screenId === "alerts") {
+        loadAlerts();
+    }
+
+    if (screenId === "monitor") {
+        loadSensorData();
+    }
+
+    if (screenId === "home") {
+        loadZones();
+        loadAlertPreview();
+    }
+
+}
+
+
+/* =========================================================
+   LOGOUT
+========================================================= */
+
+function logoutUser() {
+
+    window.location.href = "/logout";
+
+}
+
+
+/* =========================================================
+   VOLTAGE CHART
+========================================================= */
+
+function createCharts() {
+
+    const voltageCanvas =
+        document.getElementById("voltageChart");
+
+    const monitorCanvas =
+        document.getElementById("monitorChart");
+
+
+    if (voltageCanvas) {
+
+        voltageChart = new Chart(
+            voltageCanvas,
+            {
+                type: "line",
+
+                data: {
+                    labels: [],
+                    datasets: [
+                        {
+                            label: "Fence Power",
+
+                            data: [],
+
+                            borderColor: "#36f28d",
+
+                            backgroundColor:
+                                "rgba(54,242,141,0.10)",
+
+                            borderWidth: 2,
+
+                            tension: 0.35,
+
+                            fill: true,
+
+                            pointRadius: 3,
+
+                            pointBackgroundColor:
+                                "#36f28d"
+                        }
+                    ]
+                },
+
+                options: {
+
+                    responsive: true,
+
+                    maintainAspectRatio: false,
+
+                    plugins: {
+
+                        legend: {
+                            display: false
+                        }
+
+                    },
+
+                    scales: {
+
+                        x: {
+                            ticks: {
+                                color: "#8dbda3"
+                            },
+
+                            grid: {
+                                color:
+                                    "rgba(25,212,119,0.06)"
+                            }
+                        },
+
+                        y: {
+                            ticks: {
+                                color: "#8dbda3"
+                            },
+
+                            grid: {
+                                color:
+                                    "rgba(25,212,119,0.06)"
+                            }
+                        }
+
+                    }
+
+                }
+
+            }
+        );
+
+    }
+
+
+    if (monitorCanvas) {
+
+        monitorChart = new Chart(
+            monitorCanvas,
+            {
+                type: "line",
+
+                data: {
+                    labels: [],
+                    datasets: [
+                        {
+                            label: "Fence Power",
+
+                            data: [],
+
+                            borderColor: "#19d477",
+
+                            backgroundColor:
+                                "rgba(25,212,119,0.08)",
+
+                            borderWidth: 2,
+
+                            tension: 0.35,
+
+                            fill: true,
+
+                            pointRadius: 3,
+
+                            pointBackgroundColor:
+                                "#19d477"
+                        }
+                    ]
+                },
+
+                options: {
+
+                    responsive: true,
+
+                    maintainAspectRatio: false,
+
+                    plugins: {
+
+                        legend: {
+                            display: false
+                        }
+
+                    },
+
+                    scales: {
+
+                        x: {
+                            ticks: {
+                                color: "#8dbda3"
+                            },
+
+                            grid: {
+                                color:
+                                    "rgba(25,212,119,0.06)"
+                            }
+                        },
+
+                        y: {
+                            ticks: {
+                                color: "#8dbda3"
+                            },
+
+                            grid: {
+                                color:
+                                    "rgba(25,212,119,0.06)"
+                            }
+                        }
+
+                    }
+
+                }
+
+            }
+        );
+
+    }
+
+}
+
+
+/* =========================================================
+   SENSOR DATA
+========================================================= */
+
+function loadSensorData() {
+
+    fetch("/api/sensor")
+
+        .then(response => {
+
+            if (!response.ok) {
+                throw new Error("Sensor request failed");
+            }
+
+            return response.json();
+
+        })
+
+        .then(data => {
+
+            updateSensorUI(data);
+
+        })
+
+        .catch(error => {
+
+            console.error(
+                "Sensor loading error:",
+                error
+            );
+
+        });
+
+}
+
+
+/* =========================================================
+   UPDATE SENSOR UI
+========================================================= */
+
+function updateSensorUI(data) {
+
+    const battery =
+        data.battery;
+
+    const voltage =
+        data.voltage;
+
+    const animal =
+        data.animal_detected;
+
+
+    /* -------------------------
+       Home - Voltage
+    ------------------------- */
+
+    const voltageElement =
+        document.getElementById("voltageValue");
+
+    if (voltageElement) {
+
+        voltageElement.textContent =
+            `${voltage} V`;
+
+    }
+
+
+    const voltageStatus =
+        document.getElementById("voltageStatus");
+
+    if (voltageStatus) {
+
+        if (voltage < 6.0) {
+
+            voltageStatus.textContent =
+                "Power problem detected";
+
+        }
+        else if (voltage < 7.0) {
+
+            voltageStatus.textContent =
+                "Power is lower than usual";
+
+        }
+        else {
+
+            voltageStatus.textContent =
+                "Power looks good";
+
+        }
+
+    }
+
+
+    /* -------------------------
+       Battery
+    ------------------------- */
+
+    const batteryElement =
+        document.getElementById("batteryValue");
+
+    if (batteryElement) {
+
+        batteryElement.textContent =
+            `${battery}%`;
+
+    }
+
+
+    const batteryStatus =
+        document.getElementById("batteryStatus");
+
+    if (batteryStatus) {
+
+        if (battery < 50) {
+
+            batteryStatus.textContent =
+                "Battery needs attention";
+
+        }
+        else if (battery < 70) {
+
+            batteryStatus.textContent =
+                "Battery getting low";
+
+        }
+        else {
+
+            batteryStatus.textContent =
+                "Battery is good";
+
+        }
+
+    }
+
+
+    /* -------------------------
+       Wildlife
+    ------------------------- */
+
+    const animalElement =
+        document.getElementById("animalValue");
+
+    const animalStatus =
+        document.getElementById("animalStatus");
+
+
+    if (animal) {
+
+        if (animalElement) {
+            animalElement.textContent =
+                "Detected";
+        }
+
+        if (animalStatus) {
+            animalStatus.textContent =
+                "Movement nearby";
+        }
+
+    }
+    else {
+
+        if (animalElement) {
+            animalElement.textContent =
+                "Clear";
+        }
+
+        if (animalStatus) {
+            animalStatus.textContent =
+                "No movement detected";
+        }
+
+    }
+
+
+    /* -------------------------
+       Overall Safety
+    ------------------------- */
+
+    const overallValue =
+        document.getElementById("overallValue");
+
+    const overallStatus =
+        document.getElementById("overallStatus");
+
+
+    if (data.ai_analysis) {
+
+        if (
+            data.ai_analysis.level === "critical"
+        ) {
+
+            if (overallValue) {
+                overallValue.textContent =
+                    "Attention";
+            }
+
+            if (overallStatus) {
+                overallStatus.textContent =
+                    "Please check the fence";
+            }
+
+        }
+        else if (animal) {
+
+            if (overallValue) {
+                overallValue.textContent =
+                    "Wildlife Nearby";
+            }
+
+            if (overallStatus) {
+                overallStatus.textContent =
+                    "Movement detected";
+            }
+
+        }
+        else {
+
+            if (overallValue) {
+                overallValue.textContent =
+                    "Good";
+            }
+
+            if (overallStatus) {
+                overallStatus.textContent =
+                    "Everything looks good";
+            }
+
+        }
+
+    }
+
+
+    /* -------------------------
+       Monitor Screen
+    ------------------------- */
+
+    const monitorVoltage =
+        document.getElementById(
+            "monitorVoltage"
+        );
+
+    const monitorBattery =
+        document.getElementById(
+            "monitorBattery"
+        );
+
+    const monitorAnimal =
+        document.getElementById(
+            "monitorAnimal"
+        );
+
+
+    if (monitorVoltage) {
+        monitorVoltage.textContent =
+            `${voltage} V`;
+    }
+
+    if (monitorBattery) {
+        monitorBattery.textContent =
+            `${battery}%`;
+    }
+
+    if (monitorAnimal) {
+        monitorAnimal.textContent =
+            animal ? "Detected" : "Clear";
+    }
+
+
+    /* -------------------------
+       Smart Safety Check
+    ------------------------- */
+
+    const aiIcon =
+        document.getElementById("aiIcon");
+
+    const aiStatus =
+        document.getElementById("aiStatus");
+
+    const aiMessage =
+        document.getElementById("aiMessage");
+
+
+    if (data.ai_analysis) {
+
+        if (aiIcon) {
+            aiIcon.textContent =
+                data.ai_analysis.icon;
+        }
+
+        if (aiStatus) {
+            aiStatus.textContent =
+                getFriendlyAIStatus(
+                    data.ai_analysis.status
+                );
+        }
+
+        if (aiMessage) {
+            aiMessage.textContent =
+                getFriendlyAIMessage(
+                    data.ai_analysis.status
+                );
+        }
+
+
+        if (
+            data.ai_analysis.level === "critical"
+        ) {
+
+            showSmartAlert(
+                "critical",
+                "⚠️ Please Check the Fence",
+                data.ai_analysis.message
+            );
+
+        }
+        else if (animal) {
+
+            showSmartAlert(
+                "animal",
+                "🐾 Animal Movement Detected",
+                "Movement was noticed near the forest fence."
+            );
+
+        }
+
+    }
+
+
+    /* -------------------------
+       Time
+    ------------------------- */
+
+    const lastUpdated =
+        document.getElementById(
+            "lastUpdated"
+        );
+
+    if (lastUpdated) {
+
+        lastUpdated.textContent =
+            data.timestamp;
+
+    }
+
+
+    /* -------------------------
+       Chart
+    ------------------------- */
+
+    const time =
+        new Date().toLocaleTimeString();
+
+    voltageLabels.push(time);
+    voltageValues.push(voltage);
+
+
+    if (voltageLabels.length > 12) {
+
+        voltageLabels.shift();
+        voltageValues.shift();
+
+    }
+
+
+    if (voltageChart) {
+
+        voltageChart.data.labels =
+            voltageLabels;
+
+        voltageChart.data.datasets[0].data =
+            voltageValues;
+
+        voltageChart.update();
+
+    }
+
+
+    if (monitorChart) {
+
+        monitorChart.data.labels =
+            voltageLabels;
+
+        monitorChart.data.datasets[0].data =
+            voltageValues;
+
+        monitorChart.update();
+
+    }
+
+}
+
+
+/* =========================================================
+   FRIENDLY AI TEXT
+========================================================= */
+
+function getFriendlyAIStatus(status) {
+
+    if (status === "WILDLIFE ALERT") {
+        return "Wildlife nearby";
+    }
+
+    if (status === "CRITICAL") {
+        return "Please check the fence";
+    }
+
+    if (status === "WARNING") {
+        return "Needs attention";
+    }
+
+    if (status === "LOW BATTERY") {
+        return "Battery getting low";
+    }
+
+    return "Everything looks good";
+
+}
+
+
+function getFriendlyAIMessage(status) {
+
+    if (status === "WILDLIFE ALERT") {
+
+        return "Animal movement was noticed near the monitored area.";
+
+    }
+
+    if (status === "CRITICAL") {
+
+        return "Fence power is much lower than normal. Please check the fence.";
+
+    }
+
+    if (status === "WARNING") {
+
+        return "Fence power is lower than usual. Keep an eye on the area.";
+
+    }
+
+    if (status === "LOW BATTERY") {
+
+        return "The sensor battery is getting low. Please check it when possible.";
+
+    }
+
+    return "Everything looks normal. No unusual activity has been detected.";
+
+}
+
+
+/* =========================================================
+   FENCE STATUS
+========================================================= */
+
+function loadFenceStatus() {
+
+    fetch("/api/fence")
+
+        .then(response => response.json())
+
+        .then(data => {
+
+            updateFenceUI(data);
+
+        })
+
+        .catch(error => {
+
+            console.error(
+                "Fence status error:",
+                error
+            );
+
+        });
+
+}
+
+
+function updateFenceUI(data) {
+
+    const statusText =
+        document.getElementById(
+            "fenceStatusText"
+        );
+
+    const statusMessage =
+        document.getElementById(
+            "fenceStatusMessage"
+        );
+
+    const statusDot =
+        document.getElementById(
+            "fenceStatusDot"
+        );
+
+    const updated =
+        document.getElementById(
+            "fenceUpdated"
+        );
+
+
+    if (data.status === "ON") {
+
+        if (statusText) {
+            statusText.textContent =
+                "Monitoring Active";
+        }
+
+        if (statusMessage) {
+            statusMessage.textContent =
+                "Your forest fence is being monitored.";
+        }
+
+        if (statusDot) {
+            statusDot.classList.remove("off");
+        }
+
+    }
+    else {
+
+        if (statusText) {
+            statusText.textContent =
+                "Monitoring Stopped";
+        }
+
+        if (statusMessage) {
+            statusMessage.textContent =
+                "Fence monitoring is currently turned off.";
+        }
+
+        if (statusDot) {
+            statusDot.classList.add("off");
+        }
+
+    }
+
+
+    if (updated) {
+
+        updated.textContent =
+            `Updated ${data.updated_at}`;
+
+    }
+
+}
+
+
+/* =========================================================
+   START MONITORING
+========================================================= */
+
+function turnFenceOn() {
+
+    changeFenceStatus("ON");
+
+}
+
+
+/* =========================================================
+   STOP MONITORING
+========================================================= */
+
+function turnFenceOff() {
+
+    changeFenceStatus("OFF");
+
+}
+
+
+/* =========================================================
+   CHANGE FENCE STATUS
+========================================================= */
+
+function changeFenceStatus(status) {
+
+    fetch("/api/fence", {
+
+        method: "POST",
+
+        headers: {
+            "Content-Type":
+                "application/json"
+        },
+
+        body: JSON.stringify({
+            status: status
+        })
+
+    })
+
+    .then(response => response.json())
+
+    .then(data => {
+
+        if (data.success) {
+
+            updateFenceUI(data);
+
+            showSmartAlert(
+                status === "ON"
+                    ? "safe"
+                    : "warning",
+
+                status === "ON"
+                    ? "🌿 Monitoring Started"
+                    : "⏹ Monitoring Stopped",
+
+                data.message
+            );
+
+        }
+
+    })
+
+    .catch(error => {
+
+        console.error(
+            "Fence control error:",
+            error
+        );
+
+    });
+
+}
+
+
+/* =========================================================
+   EMERGENCY STOP
+========================================================= */
+
+function emergencyShutdown() {
+
+    const confirmed =
+        confirm(
+            "Are you sure you want to stop the fence monitoring system?"
+        );
+
+
+    if (!confirmed) {
+        return;
+    }
+
+
+    fetch("/api/emergency", {
+
+        method: "POST"
+
+    })
+
+    .then(response => response.json())
+
+    .then(data => {
+
+        if (data.success) {
+
+            updateFenceUI(data);
+
+            showSmartAlert(
+                "critical",
+                "🚨 Emergency Stop Activated",
+                "Fence monitoring has been stopped."
+            );
+
+        }
+
+    })
+
+    .catch(error => {
+
+        console.error(
+            "Emergency stop error:",
+            error
+        );
+
+    });
+
+}
+
+
+/* =========================================================
+   FOREST ZONES
+========================================================= */
+
+function loadZones() {
+
+    fetch("/api/zones")
+
+        .then(response => response.json())
+
+        .then(zones => {
+
+            const zoneGrid =
+                document.getElementById(
+                    "zoneGrid"
+                );
+
+
+            if (!zoneGrid) {
+                return;
+            }
+
+
+            zoneGrid.innerHTML = "";
+
+
+            zones.forEach(zone => {
+
+                let statusClass =
+                    "safe";
+
+                let statusIcon =
+                    "🟢";
+
+                let statusTitle =
+                    "Area Looks Good";
+
+
+                if (
+                    zone.status ===
+                    "Critical"
+                ) {
+
+                    statusClass =
+                        "critical";
+
+                    statusIcon =
+                        "🔴";
+
+                    statusTitle =
+                        "Please Check";
+
+                }
+
+                else if (
+                    zone.status ===
+                    "Warning"
+                ) {
+
+                    statusClass =
+                        "warning";
+
+                    statusIcon =
+                        "🟡";
+
+                    statusTitle =
+                        "Needs Attention";
+
+                }
+
+                else if (
+                    zone.status ===
+                    "Animal Detected"
+                ) {
+
+                    statusClass =
+                        "animal";
+
+                    statusIcon =
+                        "🐾";
+
+                    statusTitle =
+                        "Wildlife Nearby";
+
+                }
+
+
+                let batteryClass =
+                    "battery-good";
+
+
+                if (zone.battery < 50) {
+
+                    batteryClass =
+                        "battery-low";
+
+                }
+
+                else if (zone.battery < 70) {
+
+                    batteryClass =
+                        "battery-medium";
+
+                }
+
+
+                const wildlifeText =
+                    zone.animal_detected
+                        ? "Nearby"
+                        : "Clear";
+
+
+                const voltagePercentage =
+                    Math.min(
+                        Math.max(
+                            (zone.voltage / 8.5) * 100,
+                            10
+                        ),
+                        100
+                    );
+
+
+                zoneGrid.innerHTML += `
+
+                    <div class="zone-item ${statusClass}">
+
+                        <div class="zone-card-header">
+
+                            <div class="zone-title-area">
+
+                                <div class="zone-icon-large">
+                                    🌲
+                                </div>
+
+                                <div>
+
+                                    <h3>
+                                        ${zone.name}
+                                    </h3>
+
+                                    <p>
+                                        Forest Area ${zone.id}
+                                    </p>
+
+                                </div>
+
+                            </div>
+
+
+                            <div class="zone-live-status">
+
+                                <span>
+                                    ${statusIcon}
+                                </span>
+
+                                <span>
+                                    ${zone.status === "Safe"
+                                        ? "Safe"
+                                        : zone.status}
+                                </span>
+
+                            </div>
+
+                        </div>
+
+
+                        <div class="zone-condition">
+
+                            ${statusIcon}
+                            ${statusTitle}
+
+                        </div>
+
+
+                        <div class="zone-details">
+
+
+                            <div class="zone-metric">
+
+                                <div class="metric-icon">
+                                    ⚡
+                                </div>
+
+                                <div>
+
+                                    <span>
+                                        Fence Power
+                                    </span>
+
+                                    <strong>
+                                        ${zone.voltage} V
+                                    </strong>
+
+                                </div>
+
+                            </div>
+
+
+                            <div class="zone-metric">
+
+                                <div class="metric-icon">
+                                    🔋
+                                </div>
+
+                                <div>
+
+                                    <span>
+                                        Battery
+                                    </span>
+
+                                    <strong class="${batteryClass}">
+                                        ${zone.battery}%
+                                    </strong>
+
+                                </div>
+
+                            </div>
+
+
+                            <div class="zone-metric">
+
+                                <div class="metric-icon">
+                                    🐾
+                                </div>
+
+                                <div>
+
+                                    <span>
+                                        Wildlife
+                                    </span>
+
+                                    <strong>
+                                        ${wildlifeText}
+                                    </strong>
+
+                                </div>
+
+                            </div>
+
+
+                        </div>
+
+
+                        <div class="zone-monitor-bar">
+
+                            <div class="zone-monitor-label">
+
+                                <span>
+                                    Monitoring
+                                </span>
+
+                                <span>
+                                    Live
+                                </span>
+
+                            </div>
+
+
+                            <div class="zone-progress">
+
+                                <div
+                                    class="zone-progress-fill"
+                                    style="width:${voltagePercentage}%;">
+                                </div>
+
+                            </div>
+
+                        </div>
+
+
+                        <div class="zone-footer">
+
+                            <span>
+                                📡 Live Monitoring
+                            </span>
+
+                            <span>
+                                ● Connected
+                            </span>
+
+                        </div>
+
+
+                    </div>
+
+                `;
+
+            });
+
+        })
+
+        .catch(error => {
+
+            console.error(
+                "Zone loading error:",
+                error
+            );
+
+        });
+
+}
+
+
+/* =========================================================
+   ALERT PREVIEW
+========================================================= */
+
+function loadAlertPreview() {
+
+    fetch("/api/alerts")
+
+        .then(response => response.json())
+
+        .then(alerts => {
+
+            const container =
+                document.getElementById(
+                    "recentAlert"
+                );
+
+
+            if (!container) {
+                return;
+            }
+
+
+            if (!alerts.length) {
+
+                container.innerHTML = `
+
+                    <div class="empty-state">
+
+                        <div class="empty-state-icon">
+                            🌿
+                        </div>
+
+                        <h3>
+                            Everything looks good
+                        </h3>
+
+                        <p>
+                            No recent problems have been reported.
+                        </p>
+
+                    </div>
+
+                `;
+
+                return;
+
+            }
+
+
+            const alert =
+                alerts[0];
+
+
+            let icon =
+                "🔔";
+
+
+            if (
+                alert.alert_type ===
+                "critical"
+            ) {
+
+                icon = "🚨";
+
+            }
+
+            else if (
+                alert.alert_type ===
+                "warning"
+            ) {
+
+                icon = "⚠️";
+
+            }
+
+            else {
+
+                icon = "🌿";
+
+            }
+
+
+            container.innerHTML = `
+
+                <div class="alert-card">
+
+                    <div class="alert-icon">
+                        ${icon}
+                    </div>
+
+                    <div class="alert-content">
+
+                        <strong>
+                            ${getFriendlyAlertTitle(
+                                alert.message
+                            )}
+                        </strong>
+
+                        <span>
+                            ${alert.timestamp}
+                        </span>
+
+                    </div>
+
+                </div>
+
+            `;
+
+        })
+
+        .catch(error => {
+
+            console.error(
+                "Alert preview error:",
+                error
+            );
+
+        });
+
+}
+
+
+/* =========================================================
+   ALERTS PAGE
+========================================================= */
+
+function loadAlerts() {
+
+    fetch("/api/alerts")
+
+        .then(response => response.json())
+
+        .then(alerts => {
+
+            const list =
+                document.getElementById(
+                    "alertsList"
+                );
+
+            const count =
+                document.getElementById(
+                    "alertCount"
+                );
+
+
+            if (count) {
+                count.textContent =
+                    alerts.length;
+            }
+
+
+            if (!list) {
+                return;
+            }
+
+
+            if (!alerts.length) {
+
+                list.innerHTML = `
+
+                    <div class="empty-state">
+
+                        <div class="empty-state-icon">
+                            🌿
+                        </div>
+
+                        <h3>
+                            No notifications yet
+                        </h3>
+
+                        <p>
+                            Your forest monitoring system is running normally.
+                        </p>
+
+                    </div>
+
+                `;
+
+                return;
+
+            }
+
+
+            list.innerHTML = "";
+
+
+            alerts.forEach(alert => {
+
+                let icon =
+                    "🔔";
+
+                let className =
+                    "alert-card";
+
+
+                if (
+                    alert.alert_type ===
+                    "critical"
+                ) {
+
+                    icon =
+                        "🚨";
+
+                    className +=
+                        " alert-critical";
+
+                }
+
+                else if (
+                    alert.alert_type ===
+                    "warning"
+                ) {
+
+                    icon =
+                        "⚠️";
+
+                    className +=
+                        " alert-warning";
+
+                }
+
+                else {
+
+                    icon =
+                        "🌿";
+
+                }
+
+
+                list.innerHTML += `
+
+                    <div class="${className}">
+
+                        <div class="alert-icon">
+                            ${icon}
+                        </div>
+
+                        <div class="alert-content">
+
+                            <strong>
+                                ${getFriendlyAlertTitle(
+                                    alert.message
+                                )}
+                            </strong>
+
+                            <span>
+                                ${alert.timestamp}
+                            </span>
+
+                        </div>
+
+                    </div>
+
+                `;
+
+            });
+
+        })
+
+        .catch(error => {
+
+            console.error(
+                "Alerts loading error:",
+                error
+            );
+
+        });
+
+}
+
+
+/* =========================================================
+   FRIENDLY ALERT TITLE
+========================================================= */
+
+function getFriendlyAlertTitle(message) {
+
+    if (
+        message.includes(
+            "Animal movement"
+        )
+    ) {
+
+        return "🐾 Animal Movement Detected";
+
+    }
+
+
+    if (
+        message.includes(
+            "Critical fence voltage"
+        )
+    ) {
+
+        return "⚠️ Fence Power Problem";
+
+    }
+
+
+    if (
+        message.includes(
+            "Low fence voltage"
+        )
+    ) {
+
+        return "⚡ Fence Power is Low";
+
+    }
+
+
+    if (
+        message.includes(
+            "turned ON"
+        )
+    ) {
+
+        return "🌿 Monitoring Started";
+
+    }
+
+
+    if (
+        message.includes(
+            "turned OFF"
+        )
+    ) {
+
+        return "⏹ Monitoring Stopped";
+
+    }
+
+
+    if (
+        message.includes(
+            "Emergency shutdown"
+        )
+    ) {
+
+        return "🚨 Emergency Stop Activated";
+
+    }
+
+
+    return message;
+
+}
+
+
+/* =========================================================
+   SMART ALERT POPUP
+========================================================= */
+
+function showSmartAlert(
+    type,
+    title,
+    message
+) {
+
+    const popup =
+        document.getElementById(
+            "smartAlertPopup"
+        );
+
+    const icon =
+        document.getElementById(
+            "smartAlertIcon"
+        );
+
+    const titleElement =
+        document.getElementById(
+            "smartAlertTitle"
+        );
+
+    const messageElement =
+        document.getElementById(
+            "smartAlertMessage"
+        );
+
+    const timeElement =
+        document.getElementById(
+            "smartAlertTime"
+        );
+
+
+    if (!popup) {
+        return;
+    }
+
+
+    popup.classList.remove(
+        "warning",
+        "critical",
+        "animal"
+    );
+
+
+    if (
+        type === "warning" ||
+        type === "critical" ||
+        type === "animal"
+    ) {
+
+        popup.classList.add(type);
+
+    }
+
+
+    if (icon) {
+        icon.textContent =
+            type === "animal"
+                ? "🐾"
+                : type === "critical"
+                    ? "🚨"
+                    : type === "warning"
+                        ? "⚠️"
+                        : "🌿";
+    }
+
+
+    if (titleElement) {
+        titleElement.textContent =
+            title;
+    }
+
+
+    if (messageElement) {
+        messageElement.textContent =
+            message;
+    }
+
+
+    if (timeElement) {
+        timeElement.textContent =
+            "Just now";
+    }
+
+
+    popup.classList.add("show");
+
+
+    setTimeout(() => {
+
+        closeSmartAlert();
+
+    }, 6000);
+
+}
+
+
+/* =========================================================
+   CLOSE SMART ALERT
+========================================================= */
+
+function closeSmartAlert() {
+
+    const popup =
+        document.getElementById(
+            "smartAlertPopup"
+        );
+
+
+    if (popup) {
+
+        popup.classList.remove(
+            "show"
+        );
+
+    }
+
+}
+
+
+/* =========================================================
+   HISTORY
+========================================================= */
+
+function openHistory() {
+
+    fetch("/api/history")
+
+        .then(response => response.json())
+
+        .then(history => {
+
+            if (!history.length) {
+
+                alert(
+                    "No monitoring history available yet."
+                );
+
+                return;
+
+            }
+
+
+            let message =
+                "Recent Monitoring History\n\n";
+
+
+            history.slice(0, 10).forEach(
+                row => {
+
+                    message +=
+                        `${row.timestamp}  |  ` +
+                        `${row.voltage} V  |  ` +
+                        `${row.battery}% battery\n`;
+
+                }
+            );
+
+
+            alert(message);
+
+        })
+
+        .catch(error => {
+
+            console.error(
+                "History error:",
+                error
+            );
+
+        });
+
+}
+
+
+/* =========================================================
+   INITIAL LOAD
+========================================================= */
+
+document.addEventListener(
+    "DOMContentLoaded",
+    function () {
+
+        createCharts();
+
+        loadSensorData();
+
+        loadFenceStatus();
+
+        loadZones();
+
+        loadAlertPreview();
+
+        setInterval(
+            loadSensorData,
+            5000
+        );
+
+        setInterval(
+            loadFenceStatus,
+            5000
+        );
+
+        setInterval(
+            loadZones,
+            10000
+        );
+
+        setInterval(
+            loadAlertPreview,
+            10000
+        );
+
+    }
+);
+
+</script>
+
+</body>
+</html>

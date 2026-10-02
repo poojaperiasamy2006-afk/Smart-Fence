@@ -1,0 +1,128 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+    <title>SmartFence - Login</title>
+
+    <link rel="stylesheet"
+          href="{{ url_for('static', filename='style.css') }}">
+</head>
+
+<body class="auth-body">
+
+    <div class="auth-wrapper">
+
+        <div class="auth-card">
+
+            <!-- Logo -->
+            <div class="auth-logo">
+                🌲
+            </div>
+
+            <!-- Title -->
+            <h1>SmartFence</h1>
+
+            <p class="auth-subtitle">
+                Forest Monitoring & Alert System
+            </p>
+
+            <div class="auth-divider"></div>
+
+            <!-- Welcome -->
+            <h2>
+                Welcome Back 👋
+            </h2>
+
+            <p class="auth-description">
+                Login to continue monitoring your forest fence.
+            </p>
+
+            <!-- Error Message -->
+            {% if error %}
+            <div class="auth-error">
+                ⚠️ {{ error }}
+            </div>
+            {% endif %}
+
+            <!-- Login Form -->
+            <form method="POST"
+                  action="{{ url_for('login') }}">
+
+                <!-- Email -->
+                <div class="auth-input-group">
+
+                    <label for="email">
+                        📧 Email
+                    </label>
+
+                    <input
+                        type="email"
+                        id="email"
+                        name="email"
+                        placeholder="Enter your email"
+                        autocomplete="email"
+                        required
+                    >
+
+                </div>
+
+                <!-- Password -->
+                <div class="auth-input-group">
+
+                    <label for="password">
+                        🔒 Password
+                    </label>
+
+                    <input
+                        type="password"
+                        id="password"
+                        name="password"
+                        placeholder="Enter your password"
+                        autocomplete="current-password"
+                        required
+                    >
+
+                </div>
+
+                <!-- Login Button -->
+                <button
+                    type="submit"
+                    class="auth-button">
+
+                    🌿 Login
+
+                </button>
+
+            </form>
+
+            <!-- Register -->
+            <p class="auth-switch">
+
+                Don't have an account?
+
+                <a href="{{ url_for('register') }}">
+                    Create Account
+                </a>
+
+            </p>
+
+            <!-- Footer -->
+            <div class="auth-footer">
+
+                🌲 SmartFence
+                <br>
+                Software-Based Forest Monitoring
+
+            </div>
+
+        </div>
+
+    </div>
+
+</body>
+
+</html>
+

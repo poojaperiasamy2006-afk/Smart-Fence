@@ -1,0 +1,222 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+    <title>SmartFence - Sensor History</title>
+
+    <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+</head>
+
+<body>
+
+    <!-- NAVBAR -->
+    <nav class="navbar">
+
+        <div class="logo">
+            🚧 SmartFence
+        </div>
+
+        <div class="status">
+            ● System Online
+        </div>
+
+    </nav>
+
+
+    <!-- MAIN CONTENT -->
+    <div class="container">
+
+        <div class="page-header">
+
+            <div>
+                <h1>📊 Sensor History</h1>
+
+                <p>
+                    Historical sensor readings collected by the SmartFence system
+                </p>
+            </div>
+
+            <button class="refresh-btn" onclick="loadHistory()">
+                🔄 Refresh
+            </button>
+
+        </div>
+
+
+        <!-- TABLE -->
+        <div class="table-container">
+
+            <table>
+
+                <thead>
+
+                    <tr>
+                        <th>ID</th>
+                        <th>Battery</th>
+                        <th>Voltage</th>
+                        <th>Animal Detection</th>
+                        <th>Date & Time</th>
+                    </tr>
+
+                </thead>
+
+                <tbody id="historyTable">
+
+                    <tr>
+                        <td colspan="5">
+                            Loading sensor data...
+                        </td>
+                    </tr>
+
+                </tbody>
+
+            </table>
+
+        </div>
+
+
+        <!-- NAVIGATION -->
+
+        <div class="navigation-panel">
+
+            <a href="/" class="back-button">
+                🏠 Back to Dashboard
+            </a>
+
+            <a href="/alerts" class="back-button">
+                ⚠️ Alert History
+            </a>
+
+        </div>
+
+    </div>
+
+
+    <!-- FOOTER -->
+
+    <footer>
+
+        <p>
+            SmartFence © 2026 | Software-Based Fence Monitoring System
+        </p>
+
+    </footer>
+
+
+    <!-- JAVASCRIPT -->
+
+    <script>
+
+        function loadHistory() {
+
+            fetch("/api/history")
+
+                .then(response => response.json())
+
+                .then(data => {
+
+                    const table =
+                        document.getElementById("historyTable");
+
+                    table.innerHTML = "";
+
+                    if (data.length === 0) {
+
+                        table.innerHTML = `
+                            <tr>
+                                <td colspan="5">
+                                    No sensor data available.
+                                </td>
+                            </tr>
+                        `;
+
+                        return;
+                    }
+
+
+                    data.forEach(row => {
+
+                        let animalStatus;
+
+                        if (row.animal_detected) {
+
+                            animalStatus = `
+                                <span class="critical-badge">
+                                    🐾 Detected
+                                </span>
+                            `;
+
+                        } else {
+
+                            animalStatus = `
+                                <span class="warning-badge">
+                                    ✓ Not Detected
+                                </span>
+                            `;
+                        }
+
+
+                        table.innerHTML += `
+
+                            <tr>
+
+                                <td>
+                                    ${row.id}
+                                </td>
+
+                                <td>
+                                    🔋 ${row.battery}%
+                                </td>
+
+                                <td>
+                                    ⚡ ${row.voltage} V
+                                </td>
+
+                                <td>
+                                    ${animalStatus}
+                                </td>
+
+                                <td>
+                                    ${row.timestamp}
+                                </td>
+
+                            </tr>
+
+                        `;
+
+                    });
+
+                })
+
+                .catch(error => {
+
+                    console.error(error);
+
+                    document.getElementById("historyTable").innerHTML = `
+
+                        <tr>
+
+                            <td colspan="5">
+                                ❌ Failed to load sensor data.
+                            </td>
+
+                        </tr>
+
+                    `;
+
+                });
+
+        }
+
+
+        // Load history when page opens
+        loadHistory();
+
+    </script>
+
+</body>
+
+</html>

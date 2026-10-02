@@ -1,0 +1,246 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+
+    <meta charset="UTF-8">
+
+    <meta name="viewport"
+          content="width=device-width, initial-scale=1.0">
+
+    <title>SmartFence - Alert History</title>
+
+    <link rel="stylesheet"
+          href="{{ url_for('static', filename='style.css') }}">
+
+</head>
+
+<body>
+
+<header class="navbar">
+
+    <div class="logo">
+        🚧 SmartFence
+    </div>
+
+    <div class="system-status">
+        <span class="status-dot"></span>
+        System Online
+    </div>
+
+</header>
+
+
+<main class="container">
+
+    <section class="welcome">
+
+        <h1>⚠️ Alert History</h1>
+
+        <p>
+            Previous SmartFence alerts stored in SQLite
+        </p>
+
+    </section>
+
+
+    <section class="alert-panel">
+
+        <div class="page-header">
+
+            <h2>
+                Recent Alerts
+            </h2>
+
+            <button
+                onclick="loadAlerts()"
+                class="refresh-btn">
+
+                🔄 Refresh
+
+            </button>
+
+        </div>
+
+
+        <div class="table-container">
+
+            <table>
+
+                <thead>
+
+                    <tr>
+
+                        <th>ID</th>
+
+                        <th>Alert</th>
+
+                        <th>Type</th>
+
+                        <th>Date & Time</th>
+
+                    </tr>
+
+                </thead>
+
+
+                <tbody id="alertTable">
+
+                    <tr>
+
+                        <td colspan="4">
+
+                            Loading alerts...
+
+                        </td>
+
+                    </tr>
+
+                </tbody>
+
+            </table>
+
+        </div>
+
+    </section>
+
+
+    <section class="navigation-panel">
+
+        <a href="/" class="back-button">
+
+            ← Back to Dashboard
+
+        </a>
+
+    </section>
+
+
+    <footer>
+
+        <p>
+            SmartFence © 2026 |
+            Software Monitoring Prototype
+        </p>
+
+    </footer>
+
+</main>
+
+
+<script>
+
+async function loadAlerts() {
+
+    try {
+
+        const response =
+            await fetch("/api/alerts");
+
+
+        const alerts =
+            await response.json();
+
+
+        const table =
+            document.getElementById(
+                "alertTable"
+            );
+
+
+        table.innerHTML = "";
+
+
+        if (alerts.length === 0) {
+
+            table.innerHTML = `
+
+                <tr>
+
+                    <td colspan="4">
+
+                        No alerts recorded yet.
+
+                    </td>
+
+                </tr>
+
+            `;
+
+            return;
+
+        }
+
+
+        alerts.forEach(alert => {
+
+            let typeClass =
+                "warning-badge";
+
+
+            if (
+                alert.alert_type === "critical"
+            ) {
+
+                typeClass =
+                    "critical-badge";
+
+            }
+
+
+            table.innerHTML += `
+
+                <tr>
+
+                    <td>
+                        ${alert.id}
+                    </td>
+
+                    <td>
+                        ${alert.message}
+                    </td>
+
+                    <td>
+
+                        <span class="${typeClass}">
+
+                            ${alert.alert_type}
+
+                        </span>
+
+                    </td>
+
+                    <td>
+                        ${alert.timestamp}
+                    </td>
+
+                </tr>
+
+            `;
+
+        });
+
+    }
+
+    catch (error) {
+
+        console.log(
+            "Alert loading error:",
+            error
+        );
+
+    }
+
+}
+
+
+// Load automatically
+
+loadAlerts();
+
+</script>
+
+
+</body>
+
+</html>
